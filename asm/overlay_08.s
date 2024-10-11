@@ -304,7 +304,7 @@ _0221C068:
 _0221C06C:
 	ldr r0, [r5]
 	ldr r0, [r0, #0xc]
-	bl ov08_02224B64
+	bl BattleBag_AllocCursorDisplace
 	ldr r1, _0221C144 ; =0x00002088
 	str r0, [r5, r1]
 	add r0, r5, #0
@@ -351,7 +351,7 @@ _0221C06C:
 	ldr r0, _0221C144 ; =0x00002088
 	mov r1, #1
 	ldr r0, [r5, r0]
-	bl ov08_02224B90
+	bl BattleBag_SetCursorStatus
 _0221C0EC:
 	ldr r0, _0221C140 ; =0x0000207A
 	ldrb r0, [r5, r0]
@@ -10956,7 +10956,7 @@ ov08_022217C8: ; 0x022217C8
 	ldr r0, _022217EC ; =0x00002088
 	mov r1, #0
 	ldr r0, [r4, r0]
-	bl ov08_02224B90
+	bl BattleBag_SetCursorStatus
 	ldr r0, _022217EC ; =0x00002088
 	ldr r0, [r4, r0]
 	bl ov08_02224BC0
@@ -12815,7 +12815,7 @@ _02222688: ; jump table
 	.short _0222274E - _02222688 - 2 ; case 14
 _022226A6:
 	add r0, r4, #0
-	bl ov08_0222276C
+	bl BattleBag_InitializeFSM
 	ldr r1, _02222768 ; =0x0000114A
 	strb r0, [r4, r1]
 	b _02222756
@@ -12914,8 +12914,8 @@ _02222766:
 _02222768: .word 0x0000114A
 	thumb_func_end ov08_02222670
 
-	thumb_func_start ov08_0222276C
-ov08_0222276C: ; 0x0222276C
+	thumb_func_start BattleBag_InitializeFSM
+BattleBag_InitializeFSM: ; 0x0222276C
 	push {r3, r4, lr}
 	sub sp, #0xc
 	add r4, r0, #0
@@ -12924,14 +12924,14 @@ ov08_0222276C: ; 0x0222276C
 	strh r1, [r0]
 	ldr r0, [r4]
 	ldr r0, [r0, #0xc]
-	bl ov08_02224B64
+	bl BattleBag_AllocCursorDisplace
 	str r0, [r4, #0x34]
 	add r0, r4, #0
-	bl ov08_02223000
+	bl BattleBag_Initialize2D
 	add r0, r4, #0
-	bl ov08_022230F4
+	bl BattleBag_Load2DGraphics
 	add r0, r4, #0
-	bl ov08_022231E8
+	bl BattleBag_SetupMsgData
 	ldr r1, [r4]
 	mov r0, #4
 	ldr r1, [r1, #0xc]
@@ -12943,40 +12943,40 @@ ov08_0222276C: ; 0x0222276C
 	ldr r1, _02222834 ; =0x0000114D
 	strb r0, [r4, r1]
 	add r0, r4, #0
-	bl ov08_02223BF4
+	bl BattleBag_FillPockets
 	ldr r1, _02222838 ; =0x0000114C
 	add r0, r4, #0
 	ldrb r1, [r4, r1]
-	bl ov08_02224A50
+	bl BattleBag_TransferNSCR
 	add r0, r4, #0
-	bl ov08_022233B8
+	bl BattleBag_CreateWindow
 	ldr r1, _02222838 ; =0x0000114C
 	add r0, r4, #0
 	ldrb r1, [r4, r1]
-	bl ov08_02223480
+	bl BattleBag_FillWindow
 	add r0, r4, #0
-	bl ov08_02223D08
+	bl BattleBag_CreateSprites
 	ldr r1, _02222838 ; =0x0000114C
 	add r0, r4, #0
 	ldrb r1, [r4, r1]
-	bl ov08_02223F94
+	bl BattleBag_LoadSpritesByBagScreen
 	ldr r0, [r4]
 	add r0, #0x25
 	ldrb r0, [r0]
 	cmp r0, #0
-	beq _022227F0
+	beq after_enable_cursor
 	ldr r0, [r4, #0x34]
 	mov r1, #1
-	bl ov08_02224B90
-_022227F0:
+	bl BattleBag_SetCursorStatus
+after_enable_cursor:
 	ldr r1, _02222838 ; =0x0000114C
 	add r0, r4, #0
 	ldrb r1, [r4, r1]
-	bl ov08_02224134
+	bl BattleBag_PlaceCursorByBagScreen
 	ldr r1, _02222838 ; =0x0000114C
 	add r0, r4, #0
 	ldrb r1, [r4, r1]
-	bl ov08_0222421C
+	bl BattleBag_CatchTutorialControlHandSprite
 	mov r0, #0x10
 	str r0, [sp]
 	mov r0, #0
@@ -12990,12 +12990,12 @@ _022227F0:
 	bl PaletteData_BeginPaletteFade
 	ldr r0, [r4]
 	ldr r0, [r0, #0x14]
-	cmp r0, #1
-	bne _0222282A
+	cmp r0, #1 @Catch tutorial mode
+	bne set_pocket_selection_screen
 	add sp, #0xc
 	mov r0, #0xc
 	pop {r3, r4, pc}
-_0222282A:
+set_pocket_selection_screen:
 	mov r0, #1
 	add sp, #0xc
 	pop {r3, r4, pc}
@@ -13004,7 +13004,7 @@ _02222830: .word 0x04001050
 _02222834: .word 0x0000114D
 _02222838: .word 0x0000114C
 _0222283C: .word 0x0000FFFF
-	thumb_func_end ov08_0222276C
+	thumb_func_end BattleBag_InitializeFSM
 
 	thumb_func_start ov08_02222840
 ov08_02222840: ; 0x02222840
@@ -13335,11 +13335,11 @@ _02222AC2:
 	ldr r1, _02222AEC ; =0x0000114C
 	add r0, r4, #0
 	ldrb r1, [r4, r1]
-	bl ov08_02223F94
+	bl BattleBag_LoadSpritesByBagScreen
 	ldr r1, _02222AEC ; =0x0000114C
 	add r0, r4, #0
 	ldrb r1, [r4, r1]
-	bl ov08_02224A50
+	bl BattleBag_TransferNSCR
 	mov r0, #2
 	pop {r3, r4, r5, pc}
 	nop
@@ -13986,8 +13986,8 @@ _02222FF8: .word 0x0000114D
 _02222FFC: .word 0x0000115A
 	thumb_func_end ov08_02222EC4
 
-	thumb_func_start ov08_02223000
-ov08_02223000: ; 0x02223000
+	thumb_func_start BattleBag_Initialize2D
+BattleBag_Initialize2D: ; 0x02223000
 	push {r4, r5, lr}
 	sub sp, #0x64
 	ldr r5, _022230BC ; =ov08_02225AE8
@@ -14077,7 +14077,7 @@ _022230BC: .word ov08_02225AE8
 _022230C0: .word ov08_02225B30
 _022230C4: .word ov08_02225B14
 _022230C8: .word ov08_02225AF8
-	thumb_func_end ov08_02223000
+	thumb_func_end BattleBag_Initialize2D
 
 	thumb_func_start ov08_022230CC
 ov08_022230CC: ; 0x022230CC
@@ -14099,8 +14099,8 @@ ov08_022230CC: ; 0x022230CC
 	.balign 4, 0
 	thumb_func_end ov08_022230CC
 
-	thumb_func_start ov08_022230F4
-ov08_022230F4: ; 0x022230F4
+	thumb_func_start BattleBag_Load2DGraphics
+BattleBag_Load2DGraphics: ; 0x022230F4
 	push {r3, r4, r5, r6, lr}
 	sub sp, #0x14
 	add r5, r0, #0
@@ -14208,10 +14208,10 @@ ov08_022230F4: ; 0x022230F4
 	pop {r3, r4, r5, r6, pc}
 	.balign 4, 0
 _022231E4: .word 0x000003E2
-	thumb_func_end ov08_022230F4
+	thumb_func_end BattleBag_Load2DGraphics
 
-	thumb_func_start ov08_022231E8
-ov08_022231E8: ; 0x022231E8
+	thumb_func_start BattleBag_SetupMsgData
+BattleBag_SetupMsgData: ; 0x022231E8
 	push {r4, lr}
 	add r4, r0, #0
 	ldr r3, [r4]
@@ -14240,7 +14240,7 @@ ov08_022231E8: ; 0x022231E8
 	str r0, [r4, #0x18]
 	pop {r4, pc}
 	.balign 4, 0
-	thumb_func_end ov08_022231E8
+	thumb_func_end BattleBag_SetupMsgData
 
 	thumb_func_start ov08_02223228
 ov08_02223228: ; 0x02223228
@@ -14377,21 +14377,21 @@ ov08_02223300: ; 0x02223300
 	bl ov08_022233DC
 	add r0, r5, #0
 	add r1, r4, #0
-	bl ov08_02223480
+	bl BattleBag_FillWindow
 	add r0, r5, #0
 	add r1, r4, #0
-	bl ov08_02224A50
+	bl BattleBag_TransferNSCR
 	add r0, r5, #0
 	add r1, r4, #0
-	bl ov08_02224134
+	bl BattleBag_PlaceCursorByBagScreen
 	add r0, r5, #0
 	add r1, r4, #0
-	bl ov08_0222421C
+	bl BattleBag_CatchTutorialControlHandSprite
 	ldr r1, _02223364 ; =0x0000114C
 	add r0, r5, #0
 	strb r4, [r5, r1]
 	ldrb r1, [r5, r1]
-	bl ov08_02223F94
+	bl BattleBag_LoadSpritesByBagScreen
 	pop {r3, r4, r5, pc}
 	nop
 _02223364: .word 0x0000114C
@@ -14442,8 +14442,8 @@ ov08_02223390: ; 0x02223390
 	pop {r3, r4, r5, r6, r7, pc}
 	thumb_func_end ov08_02223390
 
-	thumb_func_start ov08_022233B8
-ov08_022233B8: ; 0x022233B8
+	thumb_func_start BattleBag_CreateWindow
+BattleBag_CreateWindow: ; 0x022233B8
 	push {r4, lr}
 	add r4, r0, #0
 	add r1, r4, #0
@@ -14459,7 +14459,7 @@ ov08_022233B8: ; 0x022233B8
 	.balign 4, 0
 _022233D4: .word ov08_02225B90
 _022233D8: .word 0x0000114C
-	thumb_func_end ov08_022233B8
+	thumb_func_end BattleBag_CreateWindow
 
 	thumb_func_start ov08_022233DC
 ov08_022233DC: ; 0x022233DC
@@ -14555,8 +14555,8 @@ ov08_02223464: ; 0x02223464
 	.balign 4, 0
 	thumb_func_end ov08_02223464
 
-	thumb_func_start ov08_02223480
-ov08_02223480: ; 0x02223480
+	thumb_func_start BattleBag_FillWindow
+BattleBag_FillWindow: ; 0x02223480
 	push {r3, lr}
 	cmp r1, #0
 	beq _02223490
@@ -14575,7 +14575,7 @@ _0222349C:
 	bl ov08_02223AA0
 	pop {r3, pc}
 	.balign 4, 0
-	thumb_func_end ov08_02223480
+	thumb_func_end BattleBag_FillWindow
 
 	thumb_func_start ov08_022234A4
 ov08_022234A4: ; 0x022234A4
@@ -15489,8 +15489,8 @@ _02223BE6:
 _02223BF0: .word 0x0000114D
 	thumb_func_end ov08_02223BA8
 
-	thumb_func_start ov08_02223BF4
-ov08_02223BF4: ; 0x02223BF4
+	thumb_func_start BattleBag_FillPockets
+BattleBag_FillPockets: ; 0x02223BF4
 	push {r4, r5, r6, r7, lr}
 	sub sp, #0xc
 	add r4, r0, #0
@@ -15607,7 +15607,7 @@ _02223CBC:
 _02223CC8: .word ov08_02225CE0
 _02223CCC: .word 0x0000114F
 _02223CD0: .word 0x00001154
-	thumb_func_end ov08_02223BF4
+	thumb_func_end BattleBag_FillPockets
 
 	thumb_func_start ov08_02223CD4
 ov08_02223CD4: ; 0x02223CD4
@@ -15641,8 +15641,8 @@ _02223D00:
 _02223D04: .word 0x0000114D
 	thumb_func_end ov08_02223CD4
 
-	thumb_func_start ov08_02223D08
-ov08_02223D08: ; 0x02223D08
+	thumb_func_start BattleBag_CreateSprites
+BattleBag_CreateSprites: ; 0x02223D08
 	push {r4, lr}
 	add r4, r0, #0
 	bl ov08_02223D34
@@ -15659,7 +15659,7 @@ ov08_02223D08: ; 0x02223D08
 	bl GfGfx_EngineBTogglePlanes
 	pop {r4, pc}
 	.balign 4, 0
-	thumb_func_end ov08_02223D08
+	thumb_func_end BattleBag_CreateSprites
 
 	thumb_func_start ov08_02223D34
 ov08_02223D34: ; 0x02223D34
@@ -15963,8 +15963,8 @@ ov08_02223F74: ; 0x02223F74
 	.balign 4, 0
 	thumb_func_end ov08_02223F74
 
-	thumb_func_start ov08_02223F94
-ov08_02223F94: ; 0x02223F94
+	thumb_func_start BattleBag_LoadSpritesByBagScreen
+BattleBag_LoadSpritesByBagScreen: ; 0x02223F94
 	push {r3, r4, r5, r6, r7, lr}
 	mov r6, #0x31
 	str r0, [sp]
@@ -15999,7 +15999,7 @@ _02223FD0:
 	ldr r0, [sp]
 	bl ov08_02224064
 	pop {r3, r4, r5, r6, r7, pc}
-	thumb_func_end ov08_02223F94
+	thumb_func_end BattleBag_LoadSpritesByBagScreen
 
 	thumb_func_start ov08_02223FD8
 ov08_02223FD8: ; 0x02223FD8
@@ -16175,8 +16175,8 @@ ov08_02224108: ; 0x02224108
 _02224130: .word 0x0000B4B9
 	thumb_func_end ov08_02224108
 
-	thumb_func_start ov08_02224134
-ov08_02224134: ; 0x02224134
+	thumb_func_start BattleBag_PlaceCursorByBagScreen
+BattleBag_PlaceCursorByBagScreen: ; 0x02224134
 	push {r3, r4, r5, lr}
 	add r4, r1, #0
 	add r5, r0, #0
@@ -16210,7 +16210,7 @@ _0222415E:
 	nop
 _02224174: .word ov08_02225CF8
 _02224178: .word 0x0000114D
-	thumb_func_end ov08_02224134
+	thumb_func_end BattleBag_PlaceCursorByBagScreen
 
 	thumb_func_start ov08_0222417C
 ov08_0222417C: ; 0x0222417C
@@ -16218,7 +16218,7 @@ ov08_0222417C: ; 0x0222417C
 	add r4, r0, #0
 	ldr r0, [r4, #0x34]
 	mov r1, #0
-	bl ov08_02224B90
+	bl BattleBag_SetCursorStatus
 	ldr r0, [r4, #0x34]
 	bl ov08_02224BC0
 	ldr r0, [r4, #0x34]
@@ -16293,8 +16293,8 @@ ov08_022241F4: ; 0x022241F4
 _02224218: .word 0x0000B4B8
 	thumb_func_end ov08_022241F4
 
-	thumb_func_start ov08_0222421C
-ov08_0222421C: ; 0x0222421C
+	thumb_func_start BattleBag_CatchTutorialControlHandSprite
+BattleBag_CatchTutorialControlHandSprite: ; 0x0222421C
 	push {r4, lr}
 	add r4, r0, #0
 	ldr r0, [r4]
@@ -16319,7 +16319,7 @@ _02224242:
 	nop
 _0222424C: .word ov08_02225D2C
 _02224250: .word ov08_02225D30
-	thumb_func_end ov08_0222421C
+	thumb_func_end BattleBag_CatchTutorialControlHandSprite
 
 	thumb_func_start ov08_02224254
 ov08_02224254: ; 0x02224254
@@ -17329,8 +17329,8 @@ _02224A48: .word 0x00001141
 _02224A4C: .word 0x0000113F
 	thumb_func_end ov08_02224974
 
-	thumb_func_start ov08_02224A50
-ov08_02224A50: ; 0x02224A50
+	thumb_func_start BattleBag_TransferNSCR
+BattleBag_TransferNSCR: ; 0x02224A50
 	push {r3, r4, r5, r6, r7, lr}
 	add r5, r0, #0
 	add r6, r1, #0
@@ -17461,10 +17461,10 @@ _02224B46:
 	pop {r3, r4, r5, r6, r7, pc}
 	nop
 _02224B60: .word 0x0000114D
-	thumb_func_end ov08_02224A50
+	thumb_func_end BattleBag_TransferNSCR
 
-	thumb_func_start ov08_02224B64
-ov08_02224B64: ; 0x02224B64
+	thumb_func_start BattleBag_AllocCursorDisplace
+BattleBag_AllocCursorDisplace: ; 0x02224B64
 	push {r3, lr}
 	mov r1, #0x10
 	bl AllocFromHeap
@@ -17477,7 +17477,7 @@ _02224B72:
 	sub r2, r2, #1
 	bne _02224B72
 	pop {r3, pc}
-	thumb_func_end ov08_02224B64
+	thumb_func_end BattleBag_AllocCursorDisplace
 
 	thumb_func_start ov08_02224B7C
 ov08_02224B7C: ; 0x02224B7C
@@ -17505,11 +17505,11 @@ ov08_02224B8C: ; 0x02224B8C
 	bx lr
 	thumb_func_end ov08_02224B8C
 
-	thumb_func_start ov08_02224B90
-ov08_02224B90: ; 0x02224B90
+	thumb_func_start BattleBag_SetCursorStatus
+BattleBag_SetCursorStatus: ; 0x02224B90
 	strb r1, [r0, #8]
 	bx lr
-	thumb_func_end ov08_02224B90
+	thumb_func_end BattleBag_SetCursorStatus
 
 	thumb_func_start ov08_02224B94
 ov08_02224B94: ; 0x02224B94
